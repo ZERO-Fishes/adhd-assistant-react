@@ -1,0 +1,5 @@
+---
+description:每次提出修改建议之后，都要同步更新功能需求文档
+globs:
+alwaysApply: true
+---

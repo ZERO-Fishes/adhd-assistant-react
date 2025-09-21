@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD助手 - CTDP工具</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/main.css">
+    <meta name="theme-color" content="#2383e2">
+    <meta name="description" content="基于CTDP理论的ADHD患者时间管理工具">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title" id="pageTitle" contenteditable="true">ADHD助手</h1>
+            <p class="subtitle">基于CTDP理论的时间管理工具</p>
+        </div>
+
+        <!-- 导航 -->
+        <nav class="nav">
+            <button class="nav-btn active" data-view="home">首页</button>
+            <button class="nav-btn" data-view="templates">任务模板</button>
+            <button class="nav-btn" data-view="chains">任务链</button>
+            <button class="nav-btn" data-view="history">历史记录</button>
+            <button class="nav-btn" data-view="settings">设置</button>
+        </nav>
+
+        <!-- 首页视图 -->
+        <div id="homeView" class="main-content active">
+            <!-- 任务链状态 -->
+            <div class="card">
+                <h2 class="card-title">当前任务链状态</h2>
+                <div id="chainStatus">
+                    <div class="chain-info">
+                        <h3>暂无活跃任务链</h3>
+                        <p>请先创建任务链</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 周历视图 -->
+            <div class="card">
+                <div class="weekly-calendar-header">
+                    <h2 class="card-title">本周任务安排</h2>
+                    <div class="weekly-nav">
+                        <button class="btn" onclick="app.previousWeek()">← 上周</button>
+                        <button class="btn" onclick="app.goToCurrentWeek()">本周</button>
+                        <button class="btn" onclick="app.nextWeek()">下周 →</button>
+                    </div>
+                </div>
+                <div id="weeklyCalendar" class="weekly-calendar">
+                    <!-- 周历将在这里动态生成 -->
+                </div>
+            </div>
+
+            <!-- 计时器区域 -->
+            <div class="card">
+                <h2 class="card-title">CTDP计时器</h2>
+                
+                <!-- 任务类型选择 -->
+                <div class="form-group">
+                    <label class="form-label">选择任务类型</label>
+                    <select id="taskTypeSelect" class="form-select">
+                        <option value="">选择任务类型</option>
+                    </select>
+                </div>
+
+                <!-- 模板选择 -->
+                <div class="form-group">
+                    <label class="form-label">选择任务模板</label>
+                    <select id="templateSelect" class="form-select" disabled>
+                        <option value="">请先选择任务类型</option>
+                    </select>
+                </div>
+
+                <!-- 计时器显示 -->
+                <div class="timer-display" id="timerDisplay">00:00</div>
+                
+                <!-- 控制按钮 -->
+                <div class="timer-controls">
+                    <button class="btn primary" id="startAppointmentBtn">预约开始</button>
+                    <button class="btn success" id="startTaskBtn" disabled>任务开始</button>
+                    <button class="btn danger" id="abandonBtn" disabled>放弃</button>
+                </div>
+
+                <div class="timer-status" id="timerStatus">准备就绪</div>
+                <div class="timer-info" id="timerInfo"></div>
+            </div>
+        </div>
+
+        <!-- 任务模板视图 -->
+        <div id="templatesView" class="main-content">
+            <!-- 任务模板管理 -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="card-title">任务模板管理</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" onclick="app.showTypeManagementModal()">管理类型</button>
+                        <button class="btn primary" id="addTemplateBtn">添加模板</button>
+                    </div>
+                </div>
+                
+                <ul id="templatesList" class="list">
+                    <!-- 模板列表将在这里动态生成 -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- 任务链视图 -->
+        <div id="chainsView" class="main-content">
+            <div class="card">
+                <h2 class="card-title">任务链管理</h2>
+                <p>任务链功能开发中...</p>
+            </div>
+        </div>
+
+        <!-- 历史记录视图 -->
+        <div id="historyView" class="main-content">
+            <!-- 统计信息 -->
+            <div class="card">
+                <h2 class="card-title">统计概览</h2>
+                <div id="historyStats" class="stats-grid">
+                    <!-- 统计信息将在这里动态生成 -->
+                </div>
+            </div>
+
+            <!-- 筛选器 -->
+            <div class="card">
+                <h2 class="card-title">筛选条件</h2>
+                <div class="filter-controls">
+                    <div class="form-group">
+                        <label class="form-label">记录类型</label>
+                        <select id="filterType" class="form-select">
+                            <option value="">全部</option>
+                            <option value="appointment">预约</option>
+                            <option value="task">任务</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">执行状态</label>
+                        <select id="filterStatus" class="form-select">
+                            <option value="">全部</option>
+                            <option value="success">成功</option>
+                            <option value="failed">失败</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">任务类型</label>
+                        <select id="filterTemplateType" class="form-select">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">搜索模板</label>
+                        <input type="text" id="filterSearch" class="form-input" placeholder="输入模板名称...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">开始日期</label>
+                        <input type="date" id="filterStartDate" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">结束日期</label>
+                        <input type="date" id="filterEndDate" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn primary" onclick="app.applyHistoryFilters()">应用筛选</button>
+                        <button class="btn" onclick="app.clearHistoryFilters()">清除筛选</button>
+                    </div>
+                </div>
+            </div>
+
+          <!-- 历史记录列表 -->
+          <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                  <h2 class="card-title">历史记录</h2>
+                  <button class="btn danger" onclick="app.clearAllHistory()">清空历史</button>
+              </div>
+              <div id="historyList" class="list">
+                  <!-- 历史记录列表将在这里动态生成 -->
+              </div>
+          </div>
+        </div>
+
+        <!-- 设置视图 -->
+        <div id="settingsView" class="main-content">
+            <div class="card">
+                <h2 class="card-title">设置</h2>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn primary" id="exportDataBtn">导出数据</button>
+                    <button class="btn" id="importDataBtn">导入数据</button>
+                    <button class="btn danger" id="clearDataBtn">清空数据</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 任务模板模态框 -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">添加任务模板</h3>
+                <button class="modal-close" onclick="app.closeModal('templateModal')">&times;</button>
+            </div>
+            
+            <form id="templateForm">
+                <div class="form-group">
+                    <label class="form-label">模板名称 *</label>
+                    <input type="text" id="templateName" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">模板描述</label>
+                    <textarea id="templateDescription" name="description" class="form-textarea" placeholder="描述这个模板的用途..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">模板类型</label>
+                    <select id="templateType" name="type" class="form-select">
+                        <option value="">选择类型</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">计时类型</label>
+                    <select id="timerType" name="timerType" class="form-select">
+                        <option value="countdown">倒计时</option>
+                        <option value="countup">正计时</option>
+                    </select>
+                </div>
+                
+                <div id="countdownFields">
+                    <div class="form-group">
+                        <label class="form-label">倒计时时间</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="countdownHours" class="form-input" value="0" min="0" max="23" style="width: 80px;">
+                            <span>小时</span>
+                            <input type="number" id="countdownMinutes" class="form-input" value="25" min="0" max="59" style="width: 80px;">
+                            <span>分钟</span>
+                            <input type="hidden" id="countdownTime" name="countdownTime" value="1500">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="countupFields" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">最小时间</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="countupMinHours" class="form-input" value="0" min="0" max="23" style="width: 80px;">
+                            <span>小时</span>
+                            <input type="number" id="countupMinMinutes" class="form-input" value="5" min="0" max="59" style="width: 80px;">
+                            <span>分钟</span>
+                            <input type="hidden" id="countupMinTime" name="countupMinTime" value="300">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">最大时间</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="countupMaxHours" class="form-input" value="1" min="0" max="23" style="width: 80px;">
+                            <span>小时</span>
+                            <input type="number" id="countupMaxMinutes" class="form-input" value="0" min="0" max="59" style="width: 80px;">
+                            <span>分钟</span>
+                            <input type="hidden" id="countupMaxTime" name="countupMaxTime" value="3600">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">神圣座位约束清单</label>
+                    <div id="forbiddenActions">
+                        <div class="form-group" style="display: flex; gap: 10px;">
+                            <input type="text" class="form-input" placeholder="输入禁止的行为">
+                            <button type="button" class="btn danger" onclick="this.parentElement.remove()">删除</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn" onclick="app.addForbiddenActionInput()">添加约束</button>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="app.closeModal('templateModal')">取消</button>
+                    <button type="submit" class="btn primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 任务类型管理模态框 -->
+    <div id="typeManagementModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">任务类型管理</h3>
+                <button class="modal-close" onclick="app.closeModal('typeManagementModal')">&times;</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <h4>添加新类型</h4>
+                <div style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">类型名称</label>
+                        <input type="text" id="newTypeName" class="form-input" placeholder="输入类型名称">
+                    </div>
+                    <div class="form-group" style="width: 100px;">
+                        <label class="form-label">背景色</label>
+                        <input type="color" id="newTypeColor" class="form-input" value="#6b7280">
+                    </div>
+                    <div class="form-group" style="width: 100px;">
+                        <label class="form-label">文字色</label>
+                        <input type="color" id="newTypeTextColor" class="form-input" value="#ffffff">
+                    </div>
+                    <div class="form-group" style="width: 80px;">
+                        <label class="form-label">预览</label>
+                        <div id="newTypePreview" class="type-preview" style="background-color: #6b7280; color: #ffffff; padding: 8px; border-radius: 4px; text-align: center; font-size: 0.9rem;">
+                            预览
+                        </div>
+                    </div>
+                    <button class="btn primary" onclick="app.addNewTaskType()">添加类型</button>
+                </div>
+            </div>
+            
+            <div>
+                <h4>现有类型</h4>
+                <div id="existingTypes">
+                    <!-- 现有类型列表将在这里动态生成 -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn" onclick="app.closeModal('typeManagementModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载JavaScript文件 -->
+    <script src="js/dataManager.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
